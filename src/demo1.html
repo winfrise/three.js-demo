@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo1</title>
+  <script src="./libs/three.min.js"></script>
+  <script src="./libs/controls/OrbitControls.js"></script>
+  <script src="./libs/earcut.min.js"></script>
+</head>
+<body>
+  <script>
+    // 创建3D场景（scene）
+    let scene = new THREE.Scene();
+    
+    /**
+      * 创建相机（camera）
+      *
+      * PerspectiveCamera( fov : Number, aspect : Number, near : Number, far : Number )
+      * fov — 摄像机视锥体垂直视野角度
+      * aspect — 摄像机视锥体长宽比
+      * near — 摄像机视锥体近端面
+      * far — 摄像机视锥体远端面
+      */
+
+    let camera = new THREE.PerspectiveCamera( 100, window.innerWidth / window.innerHeight, 0.1, 2000 );
+    camera.position.set( 0, 100,300 );   
+    
+    // 创建渲染器，设置渲染页面大小，把渲染器加入页面
+    let renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild(renderer.domElement );
+    
+    // 给场景添加一个环境光，这样我们才能看到物体
+    let ambientLight = new THREE.AmbientLight( 0xf5f5f5);
+    scene.add( ambientLight );
+
+    var pointLight = new THREE.PointLight( 0xff0000, 1, 100 );
+    pointLight.position.set( 10, 100, 100 );
+    scene.add( pointLight );
+
+    var sphereSize = 1;
+    var pointLightHelper = new THREE.PointLightHelper( pointLight, sphereSize );
+    scene.add( pointLightHelper );
+    
+    // 添加格子辅助线
+    let grid = new THREE.GridHelper( 600, 30, 0xcccccc, 0xcccccc );
+    scene.add( grid );
+    
+    // new THREE.SphereGeometry(球半径, 水平分割面的数量, 垂直分割面的数量)
+    let ball = new THREE.SphereGeometry( 5 , 32 , 32 ); // 创建小球
+    let ballColor = new THREE.MeshPhongMaterial( { color: 0xff0000 } ); //创建材质色，用来给球上色的
+    let sphere = new THREE.Mesh( ball , ballColor ); //给球上色
+    scene.add( sphere ); //把球加入到场景
+
+    ;(function () {
+      let floorGeometry1 = generateFloor({
+        points:[
+          [-200, 0, 20],
+          [-160, 0, 20],
+          [-160, 0, 40],
+          [-40, 0, 40],
+          [-40, 0, 20],
+          [0, 0, 20],
+          [0, 0, -80],
+          [-40, 0, -80],
+          [-40, 0, -90],
+          [-160, 0, -90],
+          [-160, 0, -80],
+          [-200, 0, -80]
+        ],
+        height: 50
+      })
+      let material = new THREE.MeshStandardMaterial( { 
+        color : 0x00cc00,
+		    side: THREE.DoubleSide 
+      })
+      let mesh = new THREE.Mesh( floorGeometry1 , material )
+      scene.add(mesh)
+
+      /**
+       * 绘制 边缘线
+        * EdgesGeometry( geometry : Geometry, thresholdAngle : Integer )
+        * geometry — 任何一个几何体对象。
+        * thresholdAngle — 仅当相邻面的法线之间的角度（单位为角度）超过这个值时，才会渲染边缘。默认值为1。
+        */
+      const floorGeometryEdges = new THREE.EdgesGeometry( floorGeometry1, 1 );
+      const line = new THREE.LineSegments( floorGeometryEdges, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
+      scene.add( line );
+
+    })()
+ 
+
+    
+    let controls =new THREE.OrbitControls(camera, renderer.domElement);
+    //通过.enableZoom属性可以控制是否允许鼠标中键缩放场景，.enableZoom属性默认值true。
+    controls.enableZoom =true;//允许缩放`
+    controls.minDistance = 1;//能够缩放多小
+    controls.maxDistance = 2000;////能够放大多大
+
+    //通过.enableRotate属性可以控制是否允许鼠标左键旋转场景，.enableRotate属性默认值true。
+    controls.enableRotate =true;//允许旋转
+    
+    function render() { 
+        requestAnimationFrame( render );
+        renderer.render( scene, camera );
+    } 
+    render();
+
+    /**
+      * 创始建楼的形状
+      */
+    function generateFloor ({points, height} = {}) {
+      let totalPoints = [...points]
+
+      totalPoints.forEach(vertice => {
+        // 添加上层的顶点
+        totalPoints.push([vertice[0], vertice[1] + height, vertice[2]])
+      })
+
+      // 将坐标转为 Vector 实例
+      let vertices = totalPoints.map(point => {
+        return new THREE.Vector3(...point)
+      })
+
+      let faces = []
+      for (let i = 0, l = points.length; i < l;i++) {
+        let pointIndex1 = i
+        let pointIndex2 =  i + 1
+        let pointIndex3 =  l + i + 1
+        let pointIndex4 = l + i
+
+        if (i == l - 1)  {
+          pointIndex2 = 0
+          pointIndex3 = l // 其实是(0+l)
+        }
+
+        faces.push(new THREE.Face3(pointIndex1, pointIndex2, pointIndex3))
+        faces.push(new THREE.Face3(pointIndex3, pointIndex4, pointIndex1))
+      }
+
+      let data = []
+      points.forEach(point => {
+        data.push(point[0], point[2])
+      })
+      let triangles = earcut(data);
+      console.log('triangles, triangles')
+      console.log('faces', faces)
+
+      if (triangles && triangles.length != 0) {
+        let length = points.length
+          for(let i=0; i < triangles.length; i++){
+              var tlength = triangles.length;
+              if(i%3==0 && i < tlength-2){
+                  faces.push(new THREE.Face3(triangles[i],triangles[i+1],triangles[i+2]));                            //底部的三角面
+                  faces.push(new THREE.Face3(triangles[i]+length,triangles[i+1]+length,triangles[i+2]+length));        //顶部的三角面
+              }
+          }
+      }
+      console.log(faces)
+
+      var geometry = new THREE.Geometry()
+      geometry.vertices = vertices
+      geometry.faces = faces
+      geometry.computeFaceNormals()
+      return geometry
+    }
+</script>
+  
+</body>
+</html>
