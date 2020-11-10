@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Demo1</title>
+  <title>Demo2</title>
   <script src="./libs/three.min.js"></script>
   <script src="./libs/controls/OrbitControls.js"></script>
   <script src="./libs/earcut.min.js"></script>
@@ -143,19 +143,20 @@
       points.forEach(point => {
         data.push(point[0], point[2])
       })
+
       let triangles = earcut(data);
       console.log('triangles, triangles')
       console.log('faces', faces)
 
       if (triangles && triangles.length != 0) {
         let length = points.length
-          for(let i=0; i < triangles.length; i++){
-              var tlength = triangles.length;
-              if(i%3==0 && i < tlength-2){
-                  faces.push(new THREE.Face3(triangles[i],triangles[i+1],triangles[i+2]));                            //底部的三角面
-                  faces.push(new THREE.Face3(triangles[i]+length,triangles[i+1]+length,triangles[i+2]+length));        //顶部的三角面
-              }
-          }
+        for(let i=0; i < triangles.length; i++){
+            var tlength = triangles.length;
+            if(i % 3 === 0 && i < tlength - 2) {
+              faces.push(new THREE.Face3(triangles[i],triangles[i+1],triangles[i+2]));                            //底部的三角面
+              faces.push(new THREE.Face3(triangles[i]+length,triangles[i+1]+length,triangles[i+2]+length));        //顶部的三角面
+            }
+        }
       }
       console.log(faces)
 
