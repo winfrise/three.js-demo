@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=utf-8>
+    <title>demo1</title>
+</head>
+<body>
+    <script src="libs/three.min.js"></script>
+    <script src="libs/controls/OrbitControls.js"></script>
+    <script>
+        // 创建3D场景（scene）
+        let scene = new THREE.Scene();
+        
+        // 创建相机（camera）
+        let camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 2000 );
+        camera.position.set( 0, 50,300 );   
+        
+        // 创建渲染器，设置渲染页面大小，把渲染器加入页面
+        let renderer = new THREE.WebGLRenderer();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild(renderer.domElement );
+        
+        // 给场景添加一个环境光，这样我们才能看到物体
+        let ambientLight = new THREE.AmbientLight( 0xf5f5f5);
+        scene.add( ambientLight );
+        
+        // 添加格子辅助线
+        let grid = new THREE.GridHelper( 400, 30, 0xcccccc, 0xcccccc );
+        scene.add( grid );
+        
+        // new THREE.SphereGeometry(球半径, 水平分割面的数量, 垂直分割面的数量)
+        // let ball = new THREE.SphereGeometry( 5 , 32 , 32 ); // 创建小球
+        // let ballColor = new THREE.MeshPhongMaterial( { color: 0xff0000 } ); //创建材质色，用来给球上色的
+        // let sphere = new THREE.Mesh( ball , ballColor ); //给球上色
+        // scene.add( sphere ); //把球加入到场景
+
+        // 绘制小汽车
+        ;(function () {
+          var car = new Car({color: 0xa52523})
+          scene.add(car)
+          car.position.x = -10
+
+          // let truck = new Truck({color: '#43ad7f7f'})
+          // scene.add(truck)
+
+          function Texture(width, height, rects) {
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+            const context = canvas.getContext("2d");
+            context.fillStyle = "#ffffff";
+            context.fillRect(0, 0, width, height);
+            context.fillStyle = "rgba(0,0,0,0.6)";
+            rects.forEach(rect => {
+                context.fillRect(rect.x, rect.y, rect.w, rect.h);
+            });
+            return new THREE.CanvasTexture(canvas);
+          }
+          
+          function Wheel(zoom = 1) {
+              const wheel = new THREE.Mesh(
+                  new THREE.BoxBufferGeometry(12 * zoom, 33 * zoom, 12 * zoom),
+                  new THREE.MeshLambertMaterial({
+                      color: 0x333333,
+                      flatShading: true
+                  })
+              );
+              wheel.position.z = 6 * zoom;
+              return wheel;
+          }
+            
+          // 汽车
+          function Car({ position = [0, 0, 0], color,  zoom = 1 }) {
+            const car = new THREE.Group()
+            
+            // 车身
+            const main = new THREE.Mesh(
+                new THREE.BoxBufferGeometry(60 * zoom, 30 * zoom, 15 * zoom),
+                new THREE.MeshPhongMaterial({
+                    color, 
+                    flatShading: true // 定义材质是否使用平面着色进行渲染。默认值为false。
+                })
+            )
+            main.position.z = 12 * zoom;
+            main.castShadow = true;
+            main.receiveShadow = true;
+            car.add(main)
+
+            
+            // 车顶
+            const carFrontTexture = new Texture(40, 80, [{ x: 0, y: 10, w: 30, h: 60 }]);
+            const carBackTexture = new Texture(40, 80, [{ x: 10, y: 10, w: 30, h: 60 }]);
+            const carRightSideTexture = new Texture(110, 40, [{ x: 10, y: 0, w: 50, h: 30 }, { x: 70, y: 0, w: 30, h: 30 }]);
+            const carLeftSideTexture = new Texture(110, 40, [{ x: 10, y: 10, w: 50, h: 30 }, { x: 70, y: 10, w: 30, h: 30 }]);
+            const cabin = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(33 * zoom, 24 * zoom, 12 * zoom), [
+                new THREE.MeshPhongMaterial({
+                    color: 0xcccccc,
+                    flatShading: true,
+                    map: carBackTexture
+                }),
+                new THREE.MeshPhongMaterial({
+                    color: 0xcccccc,
+                    flatShading: true,
+                    map: carFrontTexture
+                }),
+                new THREE.MeshPhongMaterial({
+                    color: 0xcccccc,
+                    flatShading: true,
+                    map: carRightSideTexture
+                }),
+                new THREE.MeshPhongMaterial({
+                    color: 0xcccccc,
+                    flatShading: true,
+                    map: carLeftSideTexture
+                }),
+                new THREE.MeshPhongMaterial({
+                    color: 0xcccccc,
+                    flatShading: true
+                }), // top
+                new THREE.MeshPhongMaterial({
+                    color: 0xcccccc,
+                    flatShading: true
+                }) // bottom
+              ]
+            )
+            cabin.position.x = 6 * zoom;
+            cabin.position.z = 25.5 * zoom;
+            cabin.castShadow = true;
+            cabin.receiveShadow = true;
+            car.add(cabin);
+
+            // 轮胎
+            const frontWheel = new Wheel();
+            frontWheel.position.x = -18 * zoom;
+            car.add(frontWheel);
+
+            const backWheel = new Wheel();
+            backWheel.position.x = 18 * zoom;
+            car.add(backWheel);
+
+            car.castShadow = true;
+            car.receiveShadow = false;
+
+            return car;
+          }
+
+          // 货车
+          function Truck({ position = [0, 0, 0], color, zoom = 1}) {
+            const truck = new THREE.Group()
+
+            const base = new THREE.Mesh(
+              new THREE.BoxBufferGeometry(100 * zoom, 25 * zoom, 5 * zoom),
+              new THREE.MeshLambertMaterial({
+                color: 0xb4c6fc,
+                flatShading: true
+              })
+            )
+            
+            base.position.z = 10 * zoom;
+            truck.add(base)
+
+            // 后面的车厢
+            const cargo = new THREE.Mesh(
+              new THREE.BoxBufferGeometry(75 * zoom, 35 * zoom, 40 * zoom),
+              new THREE.MeshPhongMaterial({
+                  color: 0xb4c6fc,
+                  flatShading: true
+              })
+            );
+            cargo.position.x = 15 * zoom;
+            cargo.position.z = 30 * zoom;
+            cargo.castShadow = true;
+            cargo.receiveShadow = true;
+            truck.add(cargo)
+
+            const truckFrontTexture = new Texture(30, 30, [{
+                x: 15,
+                y: 0,
+                w: 10,
+                h: 30
+            }]);
+            const truckRightSideTexture = new Texture(25, 30, [{
+                x: 0,
+                y: 15,
+                w: 10,
+                h: 10
+            }]);
+            const truckLeftSideTexture = new Texture(25, 30, [{
+                x: 0,
+                y: 5,
+                w: 10,
+                h: 10
+            }]);
+            const cabin = new THREE.Mesh(
+              new THREE.BoxBufferGeometry(25 * zoom, 30 * zoom, 30 * zoom), [
+                  new THREE.MeshPhongMaterial({
+                      color, flatShading: true
+                  }), // back
+                  new THREE.MeshPhongMaterial({
+                      color, flatShading: true, map: truckFrontTexture
+                  }),
+                  new THREE.MeshPhongMaterial({
+                      color, flatShading: true, map: truckRightSideTexture
+                  }),
+                  new THREE.MeshPhongMaterial({
+                      color, flatShading: true, map: truckLeftSideTexture
+                  }),
+                  new THREE.MeshPhongMaterial({
+                      color, flatShading: true
+                  }), // top
+                  new THREE.MeshPhongMaterial({
+                      color, flatShading: true
+                  }) // bottom
+              ]
+            );
+            cabin.position.x = -40 * zoom;
+            cabin.position.z = 20 * zoom;
+            cabin.castShadow = true;
+            cabin.receiveShadow = true;
+            truck.add(cabin);
+
+            const frontWheel = new Wheel();
+            frontWheel.position.x = -38 * zoom;
+            truck.add(frontWheel);
+
+            const middleWheel = new Wheel();
+            middleWheel.position.x = -10 * zoom;
+            truck.add(middleWheel);
+
+            const backWheel = new Wheel();
+            backWheel.position.x = 30 * zoom;
+            truck.add(backWheel);
+
+            return truck;
+          }
+
+
+          
+        })()
+
+        let controls =new THREE.OrbitControls(camera, renderer.domElement);
+        //通过.enableZoom属性可以控制是否允许鼠标中键缩放场景，.enableZoom属性默认值true。
+        controls.enableZoom =true;//允许缩放`
+        controls.minDistance = 1;//能够缩放多小
+        controls.maxDistance = 2000;////能够放大多大
+
+        //通过.enableRotate属性可以控制是否允许鼠标左键旋转场景，.enableRotate属性默认值true。
+        controls.enableRotate =true;//允许旋转
+        
+        function render() { 
+            requestAnimationFrame( render );
+            renderer.render( scene, camera );
+        } 
+        render();
+    </script>
+</body>
+</html>
