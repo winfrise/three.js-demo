@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=utf-8>
+    <title>EdgesGeometry Demo</title>
+</head>
+<body>
+    <script src="../../libs/three.js"></script>
+    <script src="../../libs/controls/OrbitControls.js"></script>
+    <script>
+        // 创建3D场景（scene）
+        let scene = new THREE.Scene();
+        
+        // 创建相机（camera）
+        let camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 2000 );
+        camera.position.set( 0, 50,300 );   
+        
+        // 创建渲染器，设置渲染页面大小，把渲染器加入页面
+        let renderer = new THREE.WebGLRenderer();
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild(renderer.domElement );
+        
+        // 给场景添加一个环境光，这样我们才能看到物体
+        let ambientLight = new THREE.AmbientLight( 0xf5f5f5);
+        scene.add( ambientLight );
+        
+        // 添加格子辅助线
+        let grid = new THREE.GridHelper( 400, 30, 0xcccccc, 0xcccccc );
+        scene.add( grid );
+        
+        /**
+         * edgesGeometry
+         */
+
+        ;{
+            const loader = new THREE.ObjectLoader();
+
+            loader.load(
+                "./scene.json",
+                function ( obj ) {
+                    console.log('obj', obj)
+                    scene.add( obj );
+
+                    // 遍历所有的 geometry
+                    function traverse(node, callback) {
+                        if (node.geometry) {
+                            callback(node)
+                        }
+                        if (node.children) {
+                            node.children.forEach(elem => {
+                                traverse(elem, callback)
+                            })
+
+                        }
+                    }
+
+                    traverse(obj, function (node) {
+                        var edges = new THREE.EdgesGeometry( node.geometry );
+                        var line = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { 
+                            color: 'rgba(190,20,128,1)',
+                            linewidth: 1
+                        }));
+                        console.log(JSON.stringify(line))
+                        scene.add( line );
+                    })
+                },
+                function ( xhr ) {
+                    console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+                },
+                function ( err ) {
+                    console.error( 'An error happened' );
+                }
+            );
+        }
+
+
+
+        // ;{
+        //     const loader = new THREE.ObjectLoader();
+
+        //     loader.load(
+        //         "./new.json",
+        //         function ( obj ) {
+        //             console.log('obj', obj)
+        //             obj.position = [0, 0, 0]
+        //             console.log('obj', obj)
+        //             scene.add( obj );
+        //         },
+        //         function ( xhr ) {
+        //             console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+        //         },
+        //         function ( err ) {
+        //             console.error( 'An error happened' );
+        //         }
+        //     );
+        // }
+
+
+
+
+        /**
+         * 控制器
+         */
+        
+        let controls =new THREE.OrbitControls(camera, renderer.domElement);
+        //通过.enableZoom属性可以控制是否允许鼠标中键缩放场景，.enableZoom属性默认值true。
+        controls.enableZoom =true;//允许缩放`
+        controls.minDistance = 1;//能够缩放多小
+        controls.maxDistance = 2000;////能够放大多大
+
+        //通过.enableRotate属性可以控制是否允许鼠标左键旋转场景，.enableRotate属性默认值true。
+        controls.enableRotate =true;//允许旋转
+        
+        function render() { 
+            requestAnimationFrame( render );
+            renderer.render( scene, camera );
+        } 
+        render();
+    </script>
+</body>
+</html>
