@@ -28,24 +28,6 @@
         let grid = new THREE.GridHelper( 400, 30, 0xcccccc, 0xcccccc );
         scene.add( grid );
         
-        // new THREE.SphereGeometry(球半径, 水平分割面的数量, 垂直分割面的数量)
-        ;{
-            let ball = new THREE.SphereGeometry( 5 , 32 , 32 ); // 创建小球
-            let ballColor = new THREE.MeshPhongMaterial( { color: 0xff0000 } ); //创建材质色，用来给球上色的
-            let sphere = new THREE.Mesh( ball , ballColor ); //给球上色
-            scene.add( sphere ); //把球加入到场景
-        }
-        
-        ;{
-            // 创建正方体
-
-            // const geometry = new THREE.BoxGeometry( 100, 100, 100 );
-            // // const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
-            // const edges = new THREE.EdgesGeometry( geometry );
-            // const lineBox = new THREE.LineSegments( edges, new THREE.LineBasicMaterial( { color: 0xffffff } ) );
-            // scene.add( lineBox );
-        }
-
         /**
          * edgesGeometry
          */
@@ -61,23 +43,22 @@
                     
                     const child1 = obj.children[0]
                     const child2 = obj.children[1]
-
-  
+                    
+                    // 楼体辅助
                     var edges1 = new THREE.EdgesGeometry( child1.geometry );
                     var line1 = new THREE.LineSegments( edges1, new THREE.LineBasicMaterial( { 
-                        color: 'rgba(190,20,128,0.5)',
-                        linewidth: 10
+                        color: 'rgba(190,20,128,1)',
+                        linewidth: 1
                     }));
+                    scene.add( line1 );
 
+                    // 楼体
                     var edges2 = new THREE.EdgesGeometry( child2.geometry );
                     var line2 = new THREE.LineSegments( edges2, new THREE.LineBasicMaterial( { 
-                        color: 'rgba(190,20,128,0.5)',
-                        linewidth: 10,
-                        linecap: 'round', //ignored by WebGLRenderer
-                        linejoin:  'round' //ignored by WebGLRenderer
+                        color: 'rgba(190,20,128,1)',
+                        lineWidth: 1
                     }));
 
-                    scene.add( line1 );
                     scene.add( line2 );
                 },
                 function ( xhr ) {
