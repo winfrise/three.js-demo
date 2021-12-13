@@ -125,7 +125,7 @@ function main( point) {
     Center.y = 0;
     Center.z = 0;
 
-	// TODO:
+	// TODO: 改变距离
     const R = 100;
 
     const {res1, res2} = sphereline(O,E,Center,R);
