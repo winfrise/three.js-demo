@@ -117,7 +117,7 @@ function sphereline(p1,  p2, sc, r) {
 }
 
 
-function main( point) {
+function main( point, R = 100) {
 	debugger
 
     const O = point
@@ -134,9 +134,6 @@ function main( point) {
     Center.x = 0;
     Center.y = 0;
     Center.z = 0;
-
-	// TODO: 改变距离
-    const R = 100;
 
     const {res1, res2} = sphereline(O,E,Center,R);
 
