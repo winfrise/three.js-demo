@@ -126,7 +126,7 @@ function main( point) {
     Center.z = 0;
 
 	// TODO:
-    const R = 400;
+    const R = 100;
 
     const {res1, res2} = sphereline(O,E,Center,R);
 

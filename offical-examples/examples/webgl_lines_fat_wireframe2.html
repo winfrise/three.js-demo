@@ -47,41 +47,7 @@
 			let insetHeight;
 
 			init();
-			render()
 
-			function render () {
-				requestAnimationFrame( render );
-				renderer.render( scene, mapCamera )
-				earthRenderer.render(earthScene, earthCamera)
-				// earthCamera.position.copy( mapCamera.position );
-				// earthCamera.quaternion.copy( mapCamera.quaternion );
-				const {x, y, z} = mapCamera.position
-				const dist = 40
-				console.log('当前相机位置')
-				console.log(x, y, z)
-
-				let result = main({x, y, z})
-
-				let earthX, earthY, earthZ
-			
-				result.forEach(item => {
-					if (item.x * x >= 0 && item.y * y >=0 && item.z * z >=0) {
-						console.log('命中>>>', item)
-						earthX = item.x 
-						earthY = item.y 
-						earthZ = item.z
-					}
-				})
-
-
-
-
-				earthX = x 
-				earthY = y 
-				earthZ = z
-				earthCamera.quaternion.copy( mapCamera.quaternion )
-				// earthCamera.position.set(earthX, earthY, earthZ);
-			}
 
 			function init() {
 				initMap()
@@ -117,6 +83,12 @@
 					// 添加格子辅助线
 					let grid = new THREE.GridHelper( 400, 30, 0xcccccc, 0xcccccc );
         			scene.add( grid );
+
+					mapRender()
+					function mapRender () {
+						requestAnimationFrame( mapRender );
+						renderer.render( scene, mapCamera )
+					}
 				}
 
 
@@ -133,7 +105,7 @@
 
 					// 相机
 					earthCamera = new THREE.PerspectiveCamera( 40, 1, 1, 1000 );
-					earthCamera.position.copy( mapCamera.position );
+					// earthCamera.position.copy( mapCamera.position );
 					// earthCamera.position.set( - 50, 0, 50 );
 
 					// 控制器
@@ -151,6 +123,40 @@
 					// 添加格子辅助线
 					let grid = new THREE.GridHelper( 400, 30, 0xcccccc, 0xcccccc );
 					earthScene.add( grid );
+
+					earthRender()
+					function earthRender () {
+						requestAnimationFrame( earthRender );
+				
+						const {x, y, z} = mapCamera.position
+						console.log('当前相机位置')
+						console.log(x, y, z)
+
+						let result = main({x, y, z})
+
+						let earthX, earthY, earthZ
+					
+						result.forEach(item => {
+							if (item.x * x >= 0 && item.y * y >=0 && item.z * z >=0) {
+								console.log('命中>>>', item)
+								earthX = item.x 
+								earthY = item.y 
+								earthZ = item.z
+							}
+						})
+
+
+
+
+						// earthX = x 
+						// earthY = y 
+						// earthZ = z
+						// earthCamera.quaternion.copy( mapCamera.quaternion )
+						earthCamera.position.set(earthX, earthY, earthZ);
+						earthControls.update();
+						earthRenderer.render(earthScene, earthCamera)
+					}
+
 				}
 
 
