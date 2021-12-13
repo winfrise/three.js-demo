@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - lines - fat - wireframe</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+	</head>
+
+	<body>
+
+		<div id="container"></div>
+
+		<div id="info"><a href="https://threejs.org" target="_blank">three.js</a> - fat lines</div>
+
+		<script type="module">
+
+			import * as THREE from '../build/three.module.js';
+
+			import { OrbitControls } from './jsm/controls/OrbitControls.js';
+			import { LineMaterial } from './jsm/lines/LineMaterial.js';
+
+			let renderer, scene,  controls;
+			let mapCamera, earthCamera
+			let earthCube, mapCube
+			let matLine, matLineBasic, matLineDashed;
+
+			// viewport
+			let insetWidth;
+			let insetHeight;
+
+			init();
+			animate();
+
+			function init() {
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setClearColor( 0x000000, 0.0 );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+
+				scene = new THREE.Scene();
+
+				mapCamera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 1000 );
+				mapCamera.position.set( - 50, 0, 50 );
+
+				earthCamera = new THREE.PerspectiveCamera( 40, 1, 1, 1000 );
+				earthCamera.position.copy( mapCamera.position );
+
+				controls = new OrbitControls( mapCamera, renderer.domElement );
+				controls.minDistance = 10;
+				controls.maxDistance = 500;
+
+				// 创建主正方体
+				const mapGeometry = new THREE.BoxGeometry( 1, 1, 1 );
+				const mapMaterial = new LineMaterial( {
+					color: 0x4080ff,
+					linewidth: 5,
+					dashed: false
+				} );
+				mapCube = new THREE.Mesh( mapGeometry, mapMaterial );
+				mapCube.scale.set( 1, 1, 1 );
+				scene.add( mapCube );
+
+				// 创建地球正方体
+				const earthGeomerty = new THREE.BoxGeometry( 1, 1, 1 );
+
+				const earthMaterial = new THREE.LineBasicMaterial( { color: 0x4080ff } );
+
+				earthCube = new THREE.LineSegments( earthGeomerty, earthMaterial );
+
+				scene.add( earthCube );
+
+				onWindowResize(); // 去掉会有问题
+
+
+			}
+
+			function onWindowResize() {
+
+				mapCamera.aspect = window.innerWidth / window.innerHeight;
+				mapCamera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				insetWidth = window.innerHeight / 4; // square
+				insetHeight = window.innerHeight / 4;
+
+				earthCamera.aspect = insetWidth / insetHeight;
+				earthCamera.updateProjectionMatrix();
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+
+				renderer.setClearColor( 0x000000, 0 );
+
+				renderer.setViewport( 0, 0, window.innerWidth, window.innerHeight );
+
+
+				renderer.render( scene, mapCamera );
+
+				renderer.setClearColor( 0x222222, 1 ); // 小地图背景色
+
+				renderer.clearDepth(); // important!
+
+				renderer.setScissorTest( true ); // 不能删
+
+				renderer.setScissor( 20, 20, insetWidth, insetHeight );
+
+				renderer.setViewport( 20, 20, insetWidth, insetHeight );
+
+				earthCamera.position.copy( mapCamera.position );
+				earthCamera.quaternion.copy( mapCamera.quaternion );
+
+				renderer.render( scene, earthCamera );
+				renderer.setScissorTest( false );
+
+			}
+		</script>
+
+	</body>
+
+</html>
