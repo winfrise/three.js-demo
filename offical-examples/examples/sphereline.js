@@ -1,3 +1,13 @@
+/**
+ * 参考：
+ * 空间直线与球面的相交算法 
+ * https://www.freesion.com/article/27911005259/
+ * @param {*} vector1 
+ * @param {*} vector2 
+ * @returns 
+ */
+
+
 /* 两个向量的差, (vector1 - vector2). */
 function  vdiff(vector1, vector2) {
     const v = {}
